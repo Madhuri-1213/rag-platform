@@ -1,0 +1,11 @@
+arxiv
+pymupdf
+polars
+pyarrow
+boto3
+psycopg[binary]
+pgvector
+pydantic>=2
+great-expectations
+sentence-transformers
+nltk
