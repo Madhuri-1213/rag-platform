@@ -14,7 +14,8 @@ x-airflow-common: &airflow-common
     AIRFLOW__CORE__LOAD_EXAMPLES: "false"
     AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: "true"
     AIRFLOW__SCHEDULER__DAG_DIR_LIST_INTERVAL: 30
-    PYTHONPATH: /opt/airflow/src
+    PYTHONPATH: /opt/airflow
+    POSTGRES_HOST: postgres
   volumes:
     - ./dags:/opt/airflow/dags
     - ./src:/opt/airflow/src
