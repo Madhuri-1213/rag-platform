@@ -13,7 +13,10 @@ class Settings:
     chunk_size: int = 300             # maximum words per chunk
     chunk_overlap: int = 50           # words shared between neighbouring chunks (fixed strategy)
     min_chunk_words: int = 40         # smaller pieces are merged into a neighbour
-    pipeline_version: str = "0.1.0"   # stored on every chunk so you can tell which code made it
+    pipeline_version: str = "0.5.0"   # stored on every chunk so you can tell which code made it
+    embedding_model: str = "BAAI/bge-small-en-v1.5"  # 384-dimensional, runs on a CPU
+    embedding_dim: int = 384
+    embed_context: bool = True        # put the title and section in front of the text before embedding
 
     def __post_init__(self):
         if self.chunk_strategy not in ("fixed", "section"):
@@ -33,4 +36,7 @@ def load_settings() -> Settings:
         chunk_overlap=int(os.getenv("CHUNK_OVERLAP", defaults.chunk_overlap)),
         min_chunk_words=int(os.getenv("MIN_CHUNK_WORDS", defaults.min_chunk_words)),
         pipeline_version=os.getenv("PIPELINE_VERSION", defaults.pipeline_version),
+        embedding_model=os.getenv("EMBEDDING_MODEL", defaults.embedding_model),
+        embedding_dim=int(os.getenv("EMBEDDING_DIM", defaults.embedding_dim)),
+        embed_context=os.getenv("EMBED_CONTEXT", "1").lower() not in ("0", "false", "no"),
     )

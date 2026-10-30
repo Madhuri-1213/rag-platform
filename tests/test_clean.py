@@ -1,10 +1,12 @@
 from src.processing.clean import (
     clean_block,
     clean_document,
+    strip_control_chars,
     cut_references,
     drop_fragment_runs,
     drop_repeated_blocks,
     is_noise_block,
+    is_toc_block,
     trim_front_matter,
 )
 
@@ -198,3 +200,26 @@ def test_panel_labels_do_not_count_as_function_words():
 def test_run_of_short_real_sentences_is_kept():
     blocks = ["We thank Alice.", "It works well.", "They agree with us.", "This is fine."]
     assert drop_fragment_runs(blocks) == blocks
+
+
+def test_table_of_contents_blocks_are_dropped():
+    toc = "156 6.7 Matador versus Dependency Gisting . . . . . . . . . . . . . . 162 6.8 Handling of Translation . . . . . . 164"
+    assert is_toc_block(toc)
+    assert is_toc_block("Introduction ........................ 3")
+    pages = [["Abstract We study retrieval quality in some detail here.", toc,
+              "1 Introduction", "Retrieval matters because answers depend on evidence found."]]
+    dropped = []
+    text = clean_document(pages, dropped=dropped)
+    assert "Matador" not in text and toc in dropped
+
+
+def test_normal_text_is_not_toc():
+    assert not is_toc_block("Wait . . . what happened? We use e.g. U.S. data and A. B. Smith's method.")
+    assert not is_toc_block("The result was stable (see Section 3.2 for details).")
+
+
+def test_control_characters_and_lone_surrogates_are_stripped():
+    assert clean_block("sym\x00bol\x0c text") == "symbol text"
+    assert strip_control_chars("a\x00b\x07c") == "abc"
+    assert strip_control_chars("a\ud835b") == "ab"  # a lone surrogate cannot be stored as UTF-8
+    assert strip_control_chars("tab\tand\nnewline caf\u00e9") == "tab\tand\nnewline caf\u00e9"

@@ -37,6 +37,7 @@ def build_chunk_records(paper: dict, text: str, settings: Settings, run_date: st
                 "arxiv_id": paper["arxiv_id"],
                 "version": paper["version"],
                 "title": paper["title"],
+                "bronze_pdf_path": paper.get("bronze_pdf_path"),
                 "authors": list(paper["authors"] or []),
                 "section": chunk.section,
                 "published_at": paper["published_at"],

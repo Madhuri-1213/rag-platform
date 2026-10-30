@@ -44,7 +44,8 @@ def test_records_carry_metadata_and_sequential_index():
                   "pipeline_version", "run_date"):
         assert field in first
     assert first["paper_key"] == "pk123" and first["title"] == "A Test Paper"
-    assert first["chunk_strategy"] == "section" and first["pipeline_version"] == "0.1.0"
+    assert first["chunk_strategy"] == "section" and first["pipeline_version"] == Settings().pipeline_version
+    assert "bronze_pdf_path" in first
 
 
 def test_chunk_ids_are_unique_within_a_paper():

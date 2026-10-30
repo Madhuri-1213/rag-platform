@@ -59,8 +59,23 @@ def trim_front_matter(pages: list[list[str]]) -> list[list[str]]:
     return pages
 
 
+# C0 control characters except tab, newline and carriage return (those become spaces later)
+CONTROL_CHARS = re.compile(r"[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]")
+
+
+def strip_control_chars(text: str) -> str:
+    """Remove NUL and other control characters, and lone surrogates.
+
+    PostgreSQL refuses NUL bytes in text, and lone surrogates cannot be stored as UTF-8.
+    PDF parsers occasionally emit both for odd glyphs.
+    """
+    return CONTROL_CHARS.sub("", text).encode("utf-8", "ignore").decode("utf-8")
+
+
 def clean_block(block: str) -> str:
-    """Fix one block: rejoin hyphenated words, flatten lines, normalise unicode."""
+    """Fix one block: strip bad characters, rejoin hyphenated words, flatten lines,
+    normalise unicode."""
+    block = strip_control_chars(block)
     block = re.sub(r"(\w)-\n(\w)", r"\1\2", block)  # "informa-\ntion" -> "information"
     block = block.replace("\n", " ")
     block = unicodedata.normalize("NFKC", block)  # ligatures like "ﬁ" -> "fi"
@@ -73,6 +88,15 @@ STOPWORDS = frozenset(
     "show shows shown into over between when where while however thus therefore".split()
 )
 _NUMBERED_HEADING = re.compile(r"^[1-9]\d?(?:\.\d{1,2})*\.?\s+[A-Z]")
+
+
+# Dot leaders of a table of contents or list of figures: ". . . . ." or "....."
+DOT_LEADERS = re.compile(r"(?:\.\s){4,}|\.{5,}")
+
+
+def is_toc_block(block: str) -> bool:
+    """True for table-of-contents style blocks (rows of dot leaders and page numbers)."""
+    return bool(DOT_LEADERS.search(block))
 
 
 def _is_word(token: str) -> bool:
@@ -180,7 +204,7 @@ def clean_document(
     blocks = [b for b in (clean_block(b) for page in pages for b in page) if b]
     kept = []
     for block in blocks:
-        if is_noise_block(block):
+        if is_toc_block(block) or is_noise_block(block):
             if dropped is not None:
                 dropped.append(block)
         else:

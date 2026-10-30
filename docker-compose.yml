@@ -16,10 +16,12 @@ x-airflow-common: &airflow-common
     AIRFLOW__SCHEDULER__DAG_DIR_LIST_INTERVAL: 30
     PYTHONPATH: /opt/airflow
     POSTGRES_HOST: postgres
+    HF_HOME: /opt/airflow/hf_cache
   volumes:
     - ./dags:/opt/airflow/dags
     - ./src:/opt/airflow/src
     - ./logs:/opt/airflow/logs
+    - ./hf_cache:/opt/airflow/hf_cache
   user: "${AIRFLOW_UID:-50000}:0"
 
 services:
